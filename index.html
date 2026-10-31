@@ -1,1153 +1,1307 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="dark">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="12週減脂保肌" />
-  <meta name="theme-color" content="#121214" />
-  <title>12週微赤字減脂保肌追蹤器</title>
-
-  <!-- Google Fonts: Inter & JetBrains Mono for crisp numbers -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'PingFang TC', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            bgMain: '#121214',
-            bgCard: '#1C1C1F',
-            bgElevated: '#26262B',
-            accent: '#E07A5F',      // Brick Orange / Caramel
-            accentLight: '#F4A261', // Warm Amber
-            sage: '#52B788',        // Muscle Safe Green
-            borderSubtle: '#2E2E34'
-          }
-        }
-      }
-    }
-  </script>
-
-  <!-- Custom App Icon for iOS Home Screen (Data URI SVG) -->
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%231C1C1F%22/><circle cx=%2250%22 cy=%2250%22 r=%2236%22 fill=%22none%22 stroke=%22%23E07A5F%22 stroke-width=%228%22/><text x=%2250%22 y=%2258%22 font-size=%2226%22 font-family=%22sans-serif%22 font-weight=%22bold%22 fill=%22%23F4F4F6%22 text-anchor=%22middle%22>-19%25</text></svg>" />
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Micro-Cut">
+  <title>Micro-Cut 保肌減脂追蹤器 v1.3</title>
   <style>
-    body {
-      background-color: #121214;
-      color: #F4F4F6;
+    :root {
+      --bg-main: #121214;
+      --bg-card: #1C1C1F;
+      --bg-elevated: #26262B;
+      --border: #323238;
+      --text-main: #F4F4F6;
+      --text-muted: #9E9EA9;
+      --accent: #E07A5F;
+      --accent-light: #F4A261;
+      --sage: #52B788;
+      --danger: #EF4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
       -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang TC", "Helvetica Neue", sans-serif;
+      min-height: 100vh;
+      padding-bottom: calc(85px + env(safe-area-inset-bottom));
       user-select: none;
-      overscroll-behavior-y: none;
+      -webkit-font-smoothing: antialiased;
     }
-    .safe-top {
-      padding-top: max(1rem, env(safe-area-inset-top));
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
-    .safe-bottom {
-      padding-bottom: max(5.5rem, calc(env(safe-area-inset-bottom) + 4.5rem));
+
+    /* 頂部狀態列 */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(18, 18, 20, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: max(14px, env(safe-area-inset-top)) 16px 12px;
     }
-    .nav-safe-bottom {
-      padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+
+    .container {
+      max-width: 460px;
+      margin: 0 auto;
     }
-    /* Custom scrollbar hiding for clean iOS look */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 10px;
     }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-light);
+      background: rgba(224, 122, 95, 0.15);
+      border: 1px solid rgba(224, 122, 95, 0.35);
+      padding: 2px 8px;
+      border-radius: 99px;
+      margin-bottom: 4px;
     }
-    @keyframes pulse-subtle {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.02); }
+
+    .app-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
     }
-    .animate-pop {
-      animation: pulse-subtle 0.25s ease-out;
+
+    .score-box {
+      text-align: right;
+    }
+
+    .score-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .score-val {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--accent-light);
+      line-height: 1.1;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-elevated);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      width: 0%;
+      transition: width 0.35s ease;
+    }
+
+    .header-sub {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* 主內容與卡片 */
+    main {
+      padding: 14px 16px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .card-accent {
+      border-color: rgba(224, 122, 95, 0.45);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* 日期切換器 */
+    .date-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+    }
+
+    .icon-btn {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* 打卡項目按鈕 */
+    .task-btn {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-elevated);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 12px;
+      margin-bottom: 10px;
+      color: var(--text-main);
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.1s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .task-btn:last-child {
+      margin-bottom: 0;
+    }
+
+    .task-btn:active {
+      transform: scale(0.97);
+    }
+
+    .task-btn.active-orange {
+      border-color: var(--accent);
+      background: rgba(224, 122, 95, 0.12);
+    }
+
+    .task-btn.active-green {
+      border-color: var(--sage);
+      background: rgba(82, 183, 136, 0.12);
+    }
+
+    .task-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-right: 8px;
+    }
+
+    .chk-box {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      border: 2px solid #6E6E77;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    .active-orange .chk-box {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #121214;
+    }
+
+    .active-green .chk-box {
+      background: var(--sage);
+      border-color: var(--sage);
+      color: #121214;
+    }
+
+    .task-name {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .task-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .pt-pill {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-light);
+      background: rgba(224, 122, 95, 0.15);
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* 飲食替換選擇器 */
+    .swap-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 8px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    select, input[type="number"], input[type="date"], textarea {
+      width: 100%;
+      background: var(--bg-main);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    select {
+      background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%), linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+      background-position: calc(100% - 16px) calc(1em + 2px), calc(100% - 11px) calc(1em + 2px);
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+      padding-right: 28px;
+    }
+
+    .swap-action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 4px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #121214;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-primary:active {
+      opacity: 0.85;
+      transform: scale(0.97);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .swap-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-main);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 10px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    .del-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      padding: 2px 6px;
+      cursor: pointer;
+    }
+
+    .tip-box {
+      margin-top: 10px;
+      background: rgba(224, 122, 95, 0.12);
+      border: 1px solid rgba(224, 122, 95, 0.28);
+      color: var(--accent-light);
+      padding: 9px 11px;
+      border-radius: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    /* 雙欄與四欄網格 */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      text-align: center;
+    }
+
+    .stat-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 9px 4px;
+    }
+
+    .stat-val {
+      font-size: 16px;
+      font-weight: 800;
+      margin: 3px 0;
+    }
+
+    /* 底部導覽列 */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(28, 28, 31, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      z-index: 40;
+    }
+
+    .nav-grid {
+      max-width: 460px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .nav-item {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .nav-item.active {
+      color: var(--accent-light);
+    }
+
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
-<body class="antialiased selection:bg-accent selection:text-white">
+<body>
 
-  <!-- Main App Container (iPhone Viewport Max-Width) -->
-  <div id="app" class="max-w-md mx-auto min-h-screen bg-bgMain relative flex flex-col justify-between shadow-2xl border-x border-borderSubtle/40">
-    
-    <!-- Top Header & Global Progress -->
-    <header class="safe-top px-4 pb-3 bg-bgMain/90 backdrop-blur-md sticky top-0 z-30 border-b border-borderSubtle">
-      <div class="flex items-center justify-between mb-2">
+  <!-- 頂部進度看板 -->
+  <header>
+    <div class="container">
+      <div class="header-top">
         <div>
-          <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 text-[11px] font-bold tracking-wider uppercase rounded bg-accent/20 text-accent border border-accent/30" id="header-week-badge">WEEK 1 / 12</span>
-            <span class="text-xs text-zinc-400 font-medium">FFMI 19.3 保肌減脂計畫</span>
-          </div>
-          <h1 class="text-lg font-extrabold tracking-tight text-white mt-0.5">微赤字控制中心</h1>
+          <span class="badge mono" id="weekBadge">WEEK 1 / 12</span>
+          <div class="app-title">Micro-Cut 保肌減脂</div>
         </div>
-        <button onclick="openStartDateModal()" class="text-right group bg-bgCard hover:bg-bgElevated px-3 py-1.5 rounded-xl border border-borderSubtle transition">
-          <div class="text-[10px] text-zinc-400">累積減去純脂肪預估</div>
-          <div class="text-sm font-mono font-bold text-accentLight flex items-center justify-end gap-1">
-            <span id="header-fat-lost">0.00</span> <span class="text-xs font-normal text-zinc-400">kg</span>
-            <svg class="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <div class="score-box">
+          <div class="score-label">本週累積積分 (目標 7.0)</div>
+          <div class="score-val mono"><span id="weeklyPoints">0.00</span> <span style="font-size:12px;color:var(--text-muted);font-weight:normal;">pt</span></div>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="weeklyProgressBar"></div>
+      </div>
+      <div class="header-sub mono">
+        <span id="weeklyKcalText">累積赤字: -0 kcal</span>
+        <span id="weeklyStatusText">距離本週達標還差 7.00 點</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ==================== TAB 1: 今日打卡 ==================== -->
+    <section id="tab-daily">
+
+      <!-- 日期切換 -->
+      <div class="date-nav">
+        <button type="button" class="icon-btn" onclick="changeDate(-1)">‹</button>
+        <div style="text-align:center;">
+          <div id="currentDateDisplay" style="font-size:14px;font-weight:700;">今天</div>
+          <div id="dailyPointSummary" class="mono" style="font-size:11px;color:var(--accent-light);margin-top:2px;">今日已獲: 0.00 pt (-0 kcal)</div>
+        </div>
+        <button type="button" class="icon-btn" onclick="changeDate(1)">›</button>
+      </div>
+
+      <!-- 1. 每日基礎 KPI -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="dot" style="background:var(--accent);"></span>
+            每日基礎 KPI (基本盤)
           </div>
+          <span class="mono" style="font-size:11px;color:var(--text-muted);">全滿 +1.30 pt</span>
+        </div>
+
+        <button type="button" class="task-btn" id="btn-steps" onclick="toggleTask('steps')">
+          <div class="task-left">
+            <div class="chk-box" id="chk-steps"></div>
+            <div>
+              <div class="task-name">日常步數達 9,000 步</div>
+              <div class="task-desc">拉高日常非運動熱量消耗 (-110 kcal)</div>
+            </div>
+          </div>
+          <span class="pt-pill mono">+0.45 pt</span>
+        </button>
+
+        <button type="button" class="task-btn" id="btn-rice" onclick="toggleTask('rice')">
+          <div class="task-left">
+            <div class="chk-box" id="chk-rice"></div>
+            <div>
+              <div class="task-name">中餐少吃 1/2 碗白飯</div>
+              <div class="task-desc">晚餐與練後正常吃，保留重訓表現 (-140 kcal)</div>
+            </div>
+          </div>
+          <span class="pt-pill mono">+0.55 pt</span>
+        </button>
+
+        <button type="button" class="task-btn" id="btn-nofried" onclick="toggleTask('nofried')">
+          <div class="task-left">
+            <div class="chk-box" id="chk-nofried"></div>
+            <div>
+              <div class="task-name">今日飲食沒選炸物</div>
+              <div class="task-desc">避開裹粉吸油的隱形油脂 (-75 kcal)</div>
+            </div>
+          </div>
+          <span class="pt-pill mono">+0.30 pt</span>
         </button>
       </div>
 
-      <!-- 12-Week Total Deficit Progress Bar -->
-      <div class="bg-bgCard rounded-xl p-2.5 border border-borderSubtle">
-        <div class="flex justify-between text-xs mb-1">
-          <span class="text-zinc-400">12週總熱量赤字進度 <span class="text-zinc-500">(目標 21,000 kcal)</span></span>
-          <span class="font-mono font-semibold text-zinc-200"><span id="header-total-kcal">0</span> kcal <span class="text-zinc-500">(<span id="header-total-pts">0.0</span>/84點)</span></span>
-        </div>
-        <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
-          <div id="header-total-bar" class="h-full bg-gradient-to-r from-accent to-accentLight transition-all duration-500 rounded-full" style="width: 0%"></div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Main Scrollable Content Area -->
-    <main class="flex-1 px-4 pt-3 safe-bottom overflow-y-auto">
-      
-      <!-- ================= TAB 1: 今日打卡 (DAILY KPI & JACKPOT) ================= -->
-      <section id="tab-daily" class="space-y-4">
-        
-        <!-- Weekly Score Card & Smart Bank -->
-        <div class="bg-gradient-to-br from-bgCard to-bgElevated rounded-2xl p-4 border border-borderSubtle shadow-lg relative overflow-hidden">
-          <div class="flex justify-between items-start mb-3">
-            <div>
-              <span class="text-xs font-medium text-zinc-400">本週積分進度 (每週目標 7.0 點)</span>
-              <div class="flex items-baseline gap-2 mt-0.5">
-                <span id="weekly-pts-display" class="text-3xl font-mono font-extrabold text-white">0.0</span>
-                <span class="text-sm font-mono text-zinc-400">/ 7.0 pts</span>
-                <span id="weekly-kcal-display" class="text-xs font-mono text-accentLight ml-1">(-0 kcal)</span>
-              </div>
-            </div>
-            <div id="weekly-status-badge" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700">
-              累積中
-            </div>
+      <!-- 2. 彈性飲食替換爆擊 -->
+      <div class="card card-accent">
+        <div class="card-header" style="margin-bottom:6px;">
+          <div class="card-title" style="color:var(--accent-light);">
+            🔥 飲食替換爆擊 (彈性配對)
           </div>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">選擇「原本想吃」與「實際改吃」，自動依熱量差額換算獎勵點數</p>
 
-          <!-- Weekly Progress Bar -->
-          <div class="w-full h-3 bg-zinc-900 rounded-full overflow-hidden p-0.5 border border-zinc-800 mb-3">
-            <div id="weekly-pts-bar" class="h-full bg-gradient-to-r from-accent via-accentLight to-sage rounded-full transition-all duration-500" style="width: 0%"></div>
-          </div>
+        <div class="swap-box">
+          <label class="field-label">❌ 原本想吃的食物 (高熱量選項)</label>
+          <select id="cravedSelect" onchange="updateSwapPreview()">
+            <option value="fastfood">🍔 速食套餐 (麥當勞/漢堡+薯條 ≈ 950 kcal)</option>
+            <option value="fried">🍗 炸物類 (雞排/鹹酥雞/炸排骨便當 ≈ 900 kcal)</option>
+            <option value="braised_full">🍖 爌肉飯(全飯) + 小菜 (約 850 kcal)</option>
+            <option value="snack">🧋 含糖零食 / 手搖飲 / 甜點 (約 450 kcal)</option>
+          </select>
 
-          <!-- Smart Bank / Relief Message -->
-          <div id="smart-bank-box" class="bg-zinc-900/70 rounded-xl p-2.5 border border-zinc-800/80 flex items-start gap-2.5 text-xs text-zinc-300">
-            <span class="text-base leading-none mt-0.5">💡</span>
-            <p id="smart-bank-text" class="leading-relaxed">
-              每天完成「步數+減半碗飯」即得 1 點。若外食改吃波奇碗可直接賺 +1.5 點加速或折抵週末聚餐！
-            </p>
+          <label class="field-label" style="color:var(--sage);">✅ 實際改吃的健康替換 (高蛋白/控卡)</label>
+          <select id="eatenSelect" onchange="updateSwapPreview()">
+            <option value="poke">🥗 波奇碗 Poke Bowl (約 550 kcal)</option>
+            <option value="tuna_don">🐟 鮪魚生魚片丼飯 (低脂高蛋白 ≈ 500 kcal)</option>
+            <option value="salmon_don">🍣 鮭魚生魚片丼飯 (優質Omega-3 ≈ 620 kcal)</option>
+            <option value="braised_half">🍚 爌肉飯(半碗飯) + 小菜 (約 650 kcal)</option>
+            <option value="onigiri_whey">🍙 三角飯糰 + 乳清蛋白 (解饞高蛋白 ≈ 320 kcal)</option>
+          </select>
+
+          <div class="swap-action-row">
+            <div id="swapPreviewText" class="mono" style="font-size:12px;color:var(--accent-light);">
+              省下 400 kcal ➔ <b>+1.60 pt</b>
+            </div>
+            <button type="button" class="btn-primary" onclick="addCustomSwap()">＋ 紀錄這次替換</button>
           </div>
         </div>
 
-        <!-- 7-Day Quick Date Selector Strip -->
-        <div class="bg-bgCard rounded-2xl p-2.5 border border-borderSubtle">
-          <div class="flex items-center justify-between mb-2 px-1">
-            <button onclick="shiftDate(-1)" class="p-1 text-zinc-400 hover:text-white rounded-lg bg-zinc-800/60">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-            </button>
-            <div class="flex items-center gap-2">
-              <span id="selected-date-label" class="text-xs font-bold text-zinc-200">今天 (2025-05-01)</span>
-              <button onclick="selectToday()" id="btn-back-today" class="hidden text-[11px] px-2 py-0.5 rounded bg-accent/20 text-accent font-semibold">回今天</button>
-            </div>
-            <button onclick="shiftDate(1)" class="p-1 text-zinc-400 hover:text-white rounded-lg bg-zinc-800/60">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </button>
-          </div>
-          <div id="week-day-strip" class="grid grid-cols-7 gap-1 text-center">
-            <!-- Populated by JS -->
-          </div>
-        </div>
+        <!-- 今日已紀錄清單 -->
+        <div id="todaySwapList"></div>
 
-        <!-- SECTION 1: 每日基礎微調 KPI (1.0 pt total) -->
-        <div class="space-y-2.5">
-          <div class="flex items-center justify-between px-1">
-            <h2 class="text-sm font-bold text-zinc-200 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-accent"></span>
-              每日基礎 KPI（無腦基本盤）
-            </h2>
-            <span id="daily-base-status" class="text-xs font-mono text-zinc-400">今日已得 0.0 / 1.0 pt</span>
-          </div>
-
-          <!-- Step KPI Card -->
-          <button onclick="toggleDailyFlag('steps')" id="card-kpi-steps" class="w-full text-left bg-bgCard hover:bg-bgElevated active:scale-[0.99] transition-all rounded-2xl p-3.5 border border-borderSubtle flex items-center justify-between group">
-            <div class="flex items-center gap-3.5">
-              <div id="icon-kpi-steps" class="w-11 h-11 rounded-xl bg-zinc-800 flex items-center justify-center text-xl border border-zinc-700 transition-colors">
-                🚶‍♂️
-              </div>
-              <div>
-                <div class="font-bold text-sm text-zinc-100 flex items-center gap-2">
-                  日常步數 +3,000 步
-                  <span class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-accentLight border border-zinc-700">+0.45 pt</span>
-                </div>
-                <p class="text-xs text-zinc-400 mt-0.5">約快走 22 分鐘，或全日總步數達 8,500 步 (-110 kcal)</p>
-              </div>
-            </div>
-            <div id="check-kpi-steps" class="w-6 h-6 rounded-full border-2 border-zinc-600 flex items-center justify-center transition-all">
-              <svg class="w-3.5 h-3.5 text-white opacity-0 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-            </div>
-          </button>
-
-          <!-- Lunch Rice KPI Card -->
-          <button onclick="toggleDailyFlag('rice')" id="card-kpi-rice" class="w-full text-left bg-bgCard hover:bg-bgElevated active:scale-[0.99] transition-all rounded-2xl p-3.5 border border-borderSubtle flex items-center justify-between group">
-            <div class="flex items-center gap-3.5">
-              <div id="icon-kpi-rice" class="w-11 h-11 rounded-xl bg-zinc-800 flex items-center justify-center text-xl border border-zinc-700 transition-colors">
-                🍚
-              </div>
-              <div>
-                <div class="font-bold text-sm text-zinc-100 flex items-center gap-2">
-                  午餐少吃 1/2 碗白飯
-                  <span class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-accentLight border border-zinc-700">+0.55 pt</span>
-                </div>
-                <p class="text-xs text-zinc-400 mt-0.5">便當飯撥掉一半 (-100g ≈ -140 kcal)，晚餐練後正常吃</p>
-              </div>
-            </div>
-            <div id="check-kpi-rice" class="w-6 h-6 rounded-full border-2 border-zinc-600 flex items-center justify-center transition-all">
-              <svg class="w-3.5 h-3.5 text-white opacity-0 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-            </div>
-          </button>
-        </div>
-
-        <!-- SECTION 2: 健康飲食替換爆擊 (Calorie Jackpot) -->
-        <div class="space-y-2.5 pt-1">
-          <div class="flex items-center justify-between px-1">
-            <h2 class="text-sm font-bold text-zinc-200 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-accentLight"></span>
-              飲食替換爆擊（加速 / 賺免死金牌）
-            </h2>
-            <span class="text-[11px] text-zinc-400">可點擊累加次數</span>
-          </div>
-
-          <div class="grid grid-cols-1 gap-2.5">
-            <!-- Swap 1: Poke Bowl -->
-            <div class="bg-bgCard rounded-2xl p-3.5 border border-borderSubtle flex items-center justify-between">
-              <div class="flex items-center gap-3 pr-2">
-                <div class="w-10 h-10 rounded-xl bg-accent/15 border border-accent/30 flex items-center justify-center text-lg shrink-0">
-                  🥗
-                </div>
-                <div>
-                  <div class="font-bold text-sm text-zinc-100 flex items-center gap-1.5 flex-wrap">
-                    <span>拉麵/麥當勞 ➔ 改吃波奇碗</span>
-                    <span class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-accent/20 text-accent font-bold">+1.5 pts</span>
-                  </div>
-                  <p class="text-xs text-zinc-400 mt-0.5">單次立省 ~400 kcal！直接抵 3 頓減半碗白飯</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <button onclick="updateSwapCount('poke', -1)" class="w-7 h-7 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono font-bold flex items-center justify-center border border-zinc-700">-</button>
-                <span id="count-swap-poke" class="w-5 text-center font-mono font-bold text-sm text-white">0</span>
-                <button onclick="updateSwapCount('poke', 1)" class="w-7 h-7 rounded-lg bg-accent hover:bg-accentLight text-white font-mono font-bold flex items-center justify-center shadow">+</button>
-              </div>
-            </div>
-
-            <!-- Swap 2: Bento Swap -->
-            <div class="bg-bgCard rounded-2xl p-3.5 border border-borderSubtle flex items-center justify-between">
-              <div class="flex items-center gap-3 pr-2">
-                <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-lg shrink-0">
-                  🍱
-                </div>
-                <div>
-                  <div class="font-bold text-sm text-zinc-100 flex items-center gap-1.5 flex-wrap">
-                    <span>炸物便當 ➔ 改滷雞腿/烤魚</span>
-                    <span class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">+1.2 pts</span>
-                  </div>
-                  <p class="text-xs text-zinc-400 mt-0.5">去炸皮改原型肉類，省下 ~300 kcal 劣質油脂</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <button onclick="updateSwapCount('bento', -1)" class="w-7 h-7 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono font-bold flex items-center justify-center border border-zinc-700">-</button>
-                <span id="count-swap-bento" class="w-5 text-center font-mono font-bold text-sm text-white">0</span>
-                <button onclick="updateSwapCount('bento', 1)" class="w-7 h-7 rounded-lg bg-accent hover:bg-accentLight text-white font-mono font-bold flex items-center justify-center shadow">+</button>
-              </div>
-            </div>
-
-            <!-- Swap 3: Drink / Extra Cardio -->
-            <div class="bg-bgCard rounded-2xl p-3.5 border border-borderSubtle flex items-center justify-between">
-              <div class="flex items-center gap-3 pr-2">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-lg shrink-0">
-                  🍵
-                </div>
-                <div>
-                  <div class="font-bold text-sm text-zinc-100 flex items-center gap-1.5 flex-wrap">
-                    <span>含糖飲改無糖 / 坡度快走15分</span>
-                    <span class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">+0.5 pt</span>
-                  </div>
-                  <p class="text-xs text-zinc-400 mt-0.5">飲料改美式/無糖茶，或練後多走 15 分鐘 (-125 kcal)</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 shrink-0">
-                <button onclick="updateSwapCount('drink', -1)" class="w-7 h-7 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono font-bold flex items-center justify-center border border-zinc-700">-</button>
-                <span id="count-swap-drink" class="w-5 text-center font-mono font-bold text-sm text-white">0</span>
-                <button onclick="updateSwapCount('drink', 1)" class="w-7 h-7 rounded-lg bg-accent hover:bg-accentLight text-white font-mono font-bold flex items-center justify-center shadow">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 3: 保肌防線確認 (Muscle Retention Shield) -->
-        <div class="space-y-2.5 pt-1">
-          <div class="flex items-center justify-between px-1">
-            <h2 class="text-sm font-bold text-zinc-200 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-sage"></span>
-              保肌防線（鎖住 53.1kg 除脂體重）
-            </h2>
-            <span class="text-[11px] text-sage font-medium">不計熱量・決定體態線條</span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2.5">
-            <button onclick="toggleDailyFlag('workout')" id="card-shield-workout" class="p-3 rounded-2xl bg-bgCard border border-borderSubtle text-left transition-all flex flex-col justify-between h-24">
-              <div class="flex justify-between items-start w-full">
-                <span class="text-xl">🏋️‍♂️</span>
-                <div id="dot-shield-workout" class="w-4 h-4 rounded-full border border-zinc-600 flex items-center justify-center"></div>
-              </div>
-              <div>
-                <div class="text-xs font-bold text-zinc-100">完成重訓不降重</div>
-                <div class="text-[10px] text-zinc-400 mt-0.5">維持主項力量刺激</div>
-              </div>
-            </button>
-
-            <button onclick="toggleDailyFlag('protein')" id="card-shield-protein" class="p-3 rounded-2xl bg-bgCard border border-borderSubtle text-left transition-all flex flex-col justify-between h-24">
-              <div class="flex justify-between items-start w-full">
-                <span class="text-xl">🥛</span>
-                <div id="dot-shield-protein" class="w-4 h-4 rounded-full border border-zinc-600 flex items-center justify-center"></div>
-              </div>
-              <div>
-                <div class="text-xs font-bold text-zinc-100">練後乳清+堅果</div>
-                <div class="text-[10px] text-zinc-400 mt-0.5">蛋白質達標 125g+</div>
-              </div>
-            </button>
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ================= TAB 2: 體態趨勢 (BODY STATS & LBM GUARD) ================= -->
-      <section id="tab-stats" class="space-y-4 hidden">
-        
-        <!-- LBM Guardrail Status Banner -->
-        <div id="lbm-alert-card" class="bg-bgCard rounded-2xl p-4 border border-sage/40 shadow-lg">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-sage flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-sage animate-ping"></span>
-              除脂體重 (LBM) 保肌監測防線
-            </span>
-            <span class="text-xs font-mono text-zinc-400">底線目標 ≥ 53.0 kg</span>
-          </div>
-          <div class="grid grid-cols-3 gap-2 pt-1">
-            <div class="bg-zinc-900/80 p-2.5 rounded-xl border border-zinc-800">
-              <div class="text-[10px] text-zinc-400">最新除脂體重</div>
-              <div id="stat-current-lbm" class="text-lg font-mono font-bold text-white mt-0.5">53.1 <span class="text-xs font-normal text-zinc-400">kg</span></div>
-            </div>
-            <div class="bg-zinc-900/80 p-2.5 rounded-xl border border-zinc-800">
-              <div class="text-[10px] text-zinc-400">最新純脂肪重</div>
-              <div id="stat-current-fatmass" class="text-lg font-mono font-bold text-accentLight mt-0.5">15.3 <span class="text-xs font-normal text-zinc-400">kg</span></div>
-            </div>
-            <div class="bg-zinc-900/80 p-2.5 rounded-xl border border-zinc-800">
-              <div class="text-[10px] text-zinc-400">7日平均體重</div>
-              <div id="stat-moving-avg" class="text-lg font-mono font-bold text-zinc-200 mt-0.5">68.4 <span class="text-xs font-normal text-zinc-400">kg</span></div>
-            </div>
-          </div>
-          <p id="lbm-feedback-text" class="text-xs text-zinc-300 mt-2.5 leading-relaxed">
-            目前除脂體重維持在 53.1 kg（FFMI 19.3），肌肉量保留完美！請持續維持重訓重量。
-          </p>
-        </div>
-
-        <!-- Milestone Progress Comparison (Week 0 -> Week 12) -->
-        <div class="bg-bgCard rounded-2xl p-4 border border-borderSubtle space-y-3">
-          <h3 class="text-sm font-bold text-zinc-200">三個月目標推進儀表板</h3>
-          
-          <!-- Weight Bar -->
-          <div>
-            <div class="flex justify-between text-xs mb-1">
-              <span class="text-zinc-400">體重 (初始 68.4kg ➔ 目標 65.7kg)</span>
-              <span id="bar-label-weight" class="font-mono font-bold text-white">68.4 kg</span>
-            </div>
-            <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
-              <div id="bar-prog-weight" class="h-full bg-accent rounded-full transition-all duration-500" style="width: 5%"></div>
-            </div>
-          </div>
-
-          <!-- Body Fat % Bar -->
-          <div>
-            <div class="flex justify-between text-xs mb-1">
-              <span class="text-zinc-400">體脂率 (初始 22.4% ➔ 目標 18.8%)</span>
-              <span id="bar-label-bf" class="font-mono font-bold text-accentLight">22.4 %</span>
-            </div>
-            <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
-              <div id="bar-prog-bf" class="h-full bg-accentLight rounded-full transition-all duration-500" style="width: 5%"></div>
-            </div>
-          </div>
-
-          <!-- Waist Bar -->
-          <div>
-            <div class="flex justify-between text-xs mb-1">
-              <span class="text-zinc-400">腰圍 (初始 77.0cm ➔ 目標 73.5cm)</span>
-              <span id="bar-label-waist" class="font-mono font-bold text-sage">77.0 cm</span>
-            </div>
-            <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
-              <div id="bar-prog-waist" class="h-full bg-sage rounded-full transition-all duration-500" style="width: 5%"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Log New Body Measurement Form -->
-        <div class="bg-bgCard rounded-2xl p-4 border border-borderSubtle">
-          <h3 class="text-sm font-bold text-zinc-200 mb-3">新增晨起空腹量測紀錄</h3>
-          <div class="grid grid-cols-2 gap-2.5 mb-3">
-            <div>
-              <label class="text-[11px] text-zinc-400 block mb-1">日期</label>
-              <input type="date" id="input-stat-date" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-accent" />
-            </div>
-            <div>
-              <label class="text-[11px] text-zinc-400 block mb-1">空腹體重 (kg)</label>
-              <input type="number" step="0.1" id="input-stat-weight" placeholder="68.4" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-accent" />
-            </div>
-            <div>
-              <label class="text-[11px] text-zinc-400 block mb-1">體脂率 (%) <span class="text-zinc-500">選填</span></label>
-              <input type="number" step="0.1" id="input-stat-bf" placeholder="22.4" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-accent" />
-            </div>
-            <div>
-              <label class="text-[11px] text-zinc-400 block mb-1">腰圍 (cm) <span class="text-zinc-500">選填</span></label>
-              <input type="number" step="0.1" id="input-stat-waist" placeholder="77.0" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-accent" />
-            </div>
-          </div>
-          <button onclick="addBodyStat()" class="w-full py-2.5 rounded-xl bg-accent hover:bg-accentLight text-white font-bold text-xs shadow transition active:scale-[0.99]">
-            儲存體態紀錄並計算除脂體重
-          </button>
-        </div>
-
-        <!-- SVG Weight Trend Chart -->
-        <div class="bg-bgCard rounded-2xl p-4 border border-borderSubtle">
-          <div class="flex justify-between items-center mb-2">
-            <h3 class="text-sm font-bold text-zinc-200">體重趨勢圖</h3>
-            <span class="text-[11px] text-zinc-400">實線：紀錄值 ｜ 虛線：目標區間</span>
-          </div>
-          <div id="svg-chart-container" class="w-full h-36 bg-zinc-900/60 rounded-xl border border-zinc-800/80 flex items-center justify-center p-2">
-            <!-- Rendered by JS -->
-          </div>
-        </div>
-
-        <!-- History Log List -->
-        <div class="bg-bgCard rounded-2xl p-4 border border-borderSubtle">
-          <h3 class="text-sm font-bold text-zinc-200 mb-2.5">歷史量測明細</h3>
-          <div id="body-log-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-            <!-- Populated by JS -->
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ================= TAB 3: 12週藍圖與設定 (ROADMAP & GUIDE) ================= -->
-      <section id="tab-guide" class="space-y-4 hidden">
-        
-        <!-- iPhone Add to Home Screen Guide -->
-        <div class="bg-gradient-to-br from-accent/20 to-bgCard rounded-2xl p-4 border border-accent/40">
-          <div class="flex items-center gap-2.5 mb-2">
-            <span class="text-xl">📱</span>
-            <h3 class="text-sm font-bold text-white">如何安裝到 iPhone 主畫面？</h3>
-          </div>
-          <ol class="text-xs text-zinc-300 space-y-1.5 list-decimal list-inside leading-relaxed">
-            <li>在 iPhone 使用 <strong>Safari</strong> 開啟此網頁（若你正在預覽視窗，請將程式碼儲存為 <code>.html</code> 傳送到手機開啟，或部署至 GitHub Pages / Netlify）。</li>
-            <li>點擊 Safari 底部中間的 <strong>「分享」按鈕</strong>（方框向上箭頭圖示）。</li>
-            <li>往下滑動選單，點選 <strong>「加入主畫面 (Add to Home Screen)」</strong>。</li>
-            <li>從主畫面點擊圖示開啟，即可獲得全螢幕無網址列的原生 App 體驗！</li>
-          </ol>
-        </div>
-
-        <!-- 3-Phase Roadmap -->
-        <div class="bg-bgCard rounded-2xl p-4 border border-borderSubtle space-y-3">
-          <h3 class="text-sm font-bold text-zinc-200">12 週三階段推進藍圖</h3>
-          
-          <div class="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800 space-y-1">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-accentLight">Phase 1：適應與基準校正 (W1 - W4)</span>
-              <span class="text-[11px] font-mono text-zinc-400">目標 67.5kg / 21.0%</span>
-            </div>
-            <p class="text-xs text-zinc-400 leading-relaxed">
-              建立「午餐少半碗飯 + 每日多走 3,000 步」慣性。前兩週因肝醣水分微調會先降 ~0.5kg，重訓主項重量請 100% 守住。
-            </p>
-          </div>
-
-          <div class="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800 space-y-1">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-accentLight">Phase 2：穩定燃脂推進期 (W5 - W8)</span>
-              <span class="text-[11px] font-mono text-zinc-400">目標 66.6kg / 19.7%</span>
-            </div>
-            <p class="text-xs text-zinc-400 leading-relaxed">
-              善用「波奇碗替換爆擊」度過外食聚餐。若連續兩週平均體重與腰圍未動，於重訓後加 <strong>15分鐘坡度快走（坡度6-8、速度5.2）</strong> 週2~3次即可破除停滯。
-            </p>
-          </div>
-
-          <div class="p-3 rounded-xl bg-zinc-900/70 border border-zinc-800 space-y-1">
-            <div class="flex justify-between items-center">
-              <span class="text-xs font-bold text-sage">Phase 3：線條收尾與鞏固 (W9 - W12)</span>
-              <span class="text-[11px] font-mono text-zinc-400">目標 65.7kg / 18.8%</span>
-            </div>
-            <p class="text-xs text-zinc-400 leading-relaxed">
-              腰圍進入 73~74cm，腹部與肩背線條明顯浮現。此階段<strong>睡眠滿 7~7.5 小時</strong>是防止掉肌肉的最高關鍵；若覺得疲勞，重訓可少做 1 組，但重量不降。
-            </p>
-          </div>
-        </div>
-
-        <!-- Data Backup & Restore -->
-        <div class="bg-bgCard rounded-2xl p-4 border border-borderSubtle space-y-3">
-          <h3 class="text-sm font-bold text-zinc-200">資料備份與計畫設定</h3>
-          <p class="text-xs text-zinc-400">你的所有打卡與體態數據皆自動儲存在手機本機中。你也可以匯出備份碼以防更換手機。</p>
-          
-          <div class="grid grid-cols-2 gap-2.5">
-            <button onclick="exportData()" class="py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-200 border border-zinc-700 transition">
-              📋 複製備份資料
-            </button>
-            <button onclick="openImportModal()" class="py-2.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-200 border border-zinc-700 transition">
-              📥 還原備份資料
-            </button>
-          </div>
-
-          <div class="pt-2 border-t border-zinc-800 flex justify-between items-center">
-            <span class="text-xs text-zinc-400">計畫開始日期：<strong id="setting-start-date" class="text-zinc-200 font-mono">2025-05-01</strong></span>
-            <button onclick="openStartDateModal()" class="text-xs text-accent underline">修改開跑日</button>
-          </div>
-        </div>
-
-      </section>
-
-    </main>
-
-    <!-- Bottom Tab Navigation Bar (iOS Blurred Dock Style) -->
-    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-bgCard/90 backdrop-blur-lg border-t border-borderSubtle nav-safe-bottom pt-2 px-6 z-40 flex justify-around items-center">
-      <button onclick="switchTab('daily')" id="nav-btn-daily" class="flex flex-col items-center gap-1 text-accent transition">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span class="text-[11px] font-bold">今日打卡</span>
-      </button>
-
-      <button onclick="switchTab('stats')" id="nav-btn-stats" class="flex flex-col items-center gap-1 text-zinc-500 hover:text-zinc-300 transition">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
-        <span class="text-[11px] font-bold">體態與保肌</span>
-      </button>
-
-      <button onclick="switchTab('guide')" id="nav-btn-guide" class="flex flex-col items-center gap-1 text-zinc-500 hover:text-zinc-300 transition">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-        <span class="text-[11px] font-bold">12週藍圖</span>
-      </button>
-    </nav>
-
-    <!-- Custom Toast Notification -->
-    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-zinc-800 text-white px-4 py-2 rounded-full text-xs font-semibold shadow-xl border border-zinc-700 opacity-0 pointer-events-none transition-opacity duration-300 z-50">
-      已儲存變更
-    </div>
-
-    <!-- Modal: Change Start Date / Import Data -->
-    <div id="modal-overlay" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-      <div class="bg-bgCard border border-borderSubtle rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
-        <h3 id="modal-title" class="text-base font-bold text-white">設定計畫開跑日期</h3>
-        <div id="modal-body">
-          <!-- Injected by JS -->
-        </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-zinc-800 text-zinc-300 text-xs font-semibold">取消</button>
-          <button id="modal-confirm-btn" class="px-4 py-2 rounded-xl bg-accent text-white text-xs font-bold">確認儲存</button>
+        <!-- 免死金牌提示 -->
+        <div class="tip-box" id="jackpotPrivilegeBox">
+          💡 替換賺到的點數可當作「減脂加速器」，或折抵週末聚餐免減白飯！
         </div>
       </div>
+
+      <!-- 3. 重訓與保肌防線 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title" style="color:var(--sage);">
+            <span class="dot" style="background:var(--sage);"></span>
+            保肌防線 (鎖住 53.1kg 除脂體重)
+          </div>
+          <span style="font-size:11px;color:var(--text-muted);">防掉肌肉必備</span>
+        </div>
+
+        <div class="grid-2">
+          <button type="button" class="task-btn" id="btn-workout" onclick="toggleTask('workout')" style="margin-bottom:0;flex-direction:column;align-items:flex-start;gap:10px;">
+            <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+              <span style="font-size:13px;font-weight:700;">完成重訓(不降重)</span>
+              <div class="chk-box" id="chk-workout" style="width:20px;height:20px;font-size:12px;"></div>
+            </div>
+            <span style="font-size:11px;color:var(--text-muted);">維持主項重量與強度</span>
+          </button>
+
+          <button type="button" class="task-btn" id="btn-protein" onclick="toggleTask('protein')" style="margin-bottom:0;flex-direction:column;align-items:flex-start;gap:10px;">
+            <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+              <span style="font-size:13px;font-weight:700;">練後乳清 + 堅果</span>
+              <div class="chk-box" id="chk-protein" style="width:20px;height:20px;font-size:12px;"></div>
+            </div>
+            <span style="font-size:11px;color:var(--text-muted);">蛋白質達標 125g+</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 2: 體態與備份 ==================== -->
+    <section id="tab-body" class="hidden">
+
+      <!-- 體態重組看板 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">體態重組即時看板</div>
+          <span id="lbmAlertBadge" class="mono" style="font-size:11px;padding:2px 8px;border-radius:99px;background:rgba(82,183,136,0.15);color:var(--sage);">
+            💪 保肌完美
+          </span>
+        </div>
+
+        <div class="grid-4">
+          <div class="stat-box">
+            <div style="font-size:10px;color:var(--text-muted);">最新體重</div>
+            <div id="stat-weight" class="stat-val mono">68.4</div>
+            <div style="font-size:10px;color:var(--text-muted);">目標 65.6</div>
+          </div>
+          <div class="stat-box">
+            <div style="font-size:10px;color:var(--text-muted);">最新體脂</div>
+            <div id="stat-bf" class="stat-val mono" style="color:var(--accent-light);">22.4%</div>
+            <div style="font-size:10px;color:var(--text-muted);">目標 18.8%</div>
+          </div>
+          <div class="stat-box">
+            <div style="font-size:10px;color:var(--text-muted);">除脂體重</div>
+            <div id="stat-lbm" class="stat-val mono" style="color:var(--sage);">53.1</div>
+            <div style="font-size:10px;color:var(--text-muted);">防線 ≥53.0</div>
+          </div>
+          <div class="stat-box">
+            <div style="font-size:10px;color:var(--text-muted);">最新腰圍</div>
+            <div id="stat-waist" class="stat-val mono">77.0</div>
+            <div style="font-size:10px;color:var(--text-muted);">目標 73.5</div>
+          </div>
+        </div>
+
+        <div class="mono" style="margin-top:10px;background:var(--bg-elevated);padding:8px 12px;border-radius:10px;font-size:12px;display:flex;justify-content:space-between;">
+          <span>📊 近 7 次移動平均體重：</span>
+          <b id="stat-avg7" style="color:var(--accent-light);">68.40 kg</b>
+        </div>
+      </div>
+
+      <!-- 輸入量測數據 -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">新增晨起空腹數據</div>
+        <div class="grid-3">
+          <div>
+            <label class="field-label">體重 (kg)</label>
+            <input type="number" id="inputWeight" step="0.1" placeholder="68.4" class="mono">
+          </div>
+          <div>
+            <label class="field-label">體脂率 (%)</label>
+            <input type="number" id="inputBf" step="0.1" placeholder="22.4" class="mono">
+          </div>
+          <div>
+            <label class="field-label">腰圍 (cm)</label>
+            <input type="number" id="inputWaist" step="0.1" placeholder="77.0" class="mono">
+          </div>
+        </div>
+        <button type="button" class="btn-primary" style="width:100%;" onclick="addBodyLog()">儲存今日體態紀錄</button>
+      </div>
+
+      <!-- 歷史紀錄清單 -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">歷史量測紀錄 (自動算 LBM)</div>
+        <div id="bodyLogList" style="max-height:220px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- 資料匯出與備份還原 -->
+      <div class="card card-accent">
+        <div class="card-header" style="margin-bottom:6px;">
+          <div class="card-title" style="color:var(--accent-light);">💾 資料備份與還原 (匯出 / 匯入)</div>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">
+          點擊「複製備份碼」可將所有紀錄貼到 iPhone 備忘錄保存；換手機或更新時，貼回下方文字框即可一鍵還原。
+        </p>
+
+        <div class="grid-2" style="margin-bottom:10px;">
+          <button type="button" class="btn-secondary" onclick="exportDataCopy()">📋 複製 JSON 備份碼</button>
+          <button type="button" class="btn-secondary" onclick="exportDataFile()">⬇️ 下載 .json 備份檔</button>
+        </div>
+
+        <label class="field-label">貼上備份碼以還原或檢視匯出結果：</label>
+        <textarea id="backupJsonArea" rows="3" class="mono" style="font-size:11px;" placeholder="點擊上方「複製 JSON 備份碼」會顯示於此；若要還原資料，請在此貼上備份碼並點擊下方還原按鈕..."></textarea>
+
+        <button type="button" class="btn-secondary" style="border-color:var(--sage);color:var(--sage);" onclick="importDataFromJson()">
+          🔄 從上方 JSON 備份碼還原資料
+        </button>
+        <div id="backupStatusMsg" class="mono hidden" style="font-size:11px;margin-top:8px;"></div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 3: 12週藍圖 ==================== -->
+    <section id="tab-guide" class="hidden">
+
+      <div class="card">
+        <div class="card-title" style="color:var(--accent-light);margin-bottom:10px;">⚡ 專屬「A 換 B」爆擊速查表</div>
+        <div class="swap-item">
+          <div>
+            <div style="font-weight:700;">速食套餐 ➔ 鮪魚/鮭魚生魚片丼飯</div>
+            <div style="font-size:11px;color:var(--text-muted);">砍掉薯條反式脂肪，補滿優質魚肉蛋白</div>
+          </div>
+          <span class="pt-pill mono">+1.3~1.8 pt</span>
+        </div>
+        <div class="swap-item">
+          <div>
+            <div style="font-weight:700;">炸物類 ➔ 波奇碗 (Poke Bowl)</div>
+            <div style="font-size:11px;color:var(--text-muted);">省下 350 kcal 炸衣油脂，纖維與飽足感拉滿</div>
+          </div>
+          <span class="pt-pill mono">+1.40 pt</span>
+        </div>
+        <div class="swap-item">
+          <div>
+            <div style="font-weight:700;">爌肉飯+小菜 ➔ 爌肉飯(半碗)+小菜</div>
+            <div style="font-size:11px;color:var(--text-muted);">保留吃爌肉的爽度，只減掉吸滿滷汁的半碗飯</div>
+          </div>
+          <span class="pt-pill mono">+0.80 pt</span>
+        </div>
+        <div class="swap-item">
+          <div>
+            <div style="font-weight:700;">含糖零食 ➔ 三角飯糰 + 乳清蛋白</div>
+            <div style="font-size:11px;color:var(--text-muted);">下午解饞救星！少 130 kcal 還多賺 25g 蛋白質</div>
+          </div>
+          <span class="pt-pill mono">+0.52 pt</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">🎯 12 週三階段里程碑 (166cm)</div>
+        <div style="border-left:3px solid var(--accent);padding-left:10px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:700;">Phase 1：適應校正期 (W1 - W4) ➔ 67.5 kg</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">體脂目標 21.0%｜腰圍 75.8 cm。習慣 9,000 步與中餐半碗飯。</div>
+        </div>
+        <div style="border-left:3px solid var(--accent-light);padding-left:10px;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:700;">Phase 2：穩定燃脂期 (W5 - W8) ➔ 66.6 kg</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">體脂目標 19.7%｜腰圍 74.5 cm。善用生魚片丼飯與波奇碗突破 20%。</div>
+        </div>
+        <div style="border-left:3px solid var(--sage);padding-left:10px;">
+          <div style="font-size:13px;font-weight:700;">Phase 3：線條收尾期 (W9 - W12) ➔ 65.6 kg</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">體脂目標 18.8%｜腰圍 73.5 cm｜除脂體重堅守 ≥53.0 kg。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px;">⚙️ 計畫起始日與重置</div>
+        <label class="field-label">計畫開始日期：</label>
+        <input type="date" id="startDateInput" class="mono" onchange="updateStartDate()">
+        <button type="button" id="resetBtn" class="btn-secondary" style="border-color:#7F1D1D;color:#FCA5A5;margin-top:4px;" onclick="handleResetClick()">
+          重置所有資料為初始值
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- 底部切換導覽列 -->
+  <nav>
+    <div class="nav-grid">
+      <button type="button" class="nav-item active" id="nav-daily" onclick="switchTab('daily')">
+        <span style="font-size:18px;">☑️</span>
+        <span>今日打卡</span>
+      </button>
+      <button type="button" class="nav-item" id="nav-body" onclick="switchTab('body')">
+        <span style="font-size:18px;">📊</span>
+        <span>體態與備份</span>
+      </button>
+      <button type="button" class="nav-item" id="nav-guide" onclick="switchTab('guide')">
+        <span style="font-size:18px;">🗺️</span>
+        <span>12週藍圖</span>
+      </button>
     </div>
+  </nav>
 
-  </div>
-
-  <!-- Application Logic -->
   <script>
-    const STORAGE_KEY = 'microcut_12w_tracker_v1';
+    const STORAGE_KEY = 'microcut_pro_v1';
 
-    // Default User Baseline from Prompt
-    const BASELINE = {
-      height: 166,
-      startWeight: 68.4,
-      targetWeight: 65.7,
-      startBF: 22.4,
-      targetBF: 18.8,
-      startWaist: 77.0,
-      targetWaist: 73.5,
-      lbmFloor: 53.0
+    const CRAVED_FOODS = {
+      fastfood:     { name: '速食套餐', kcal: 950 },
+      fried:        { name: '炸物類', kcal: 900 },
+      braised_full: { name: '爌肉飯+小菜', kcal: 850 },
+      snack:        { name: '含糖零食', kcal: 450 }
     };
 
-    // Format Date as YYYY-MM-DD in local timezone
-    function formatDateStr(dateObj) {
-      const y = dateObj.getFullYear();
-      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const d = String(dateObj.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
+    const HEALTHY_SWAPS = {
+      poke:         { name: '波奇碗', kcal: 550 },
+      tuna_don:     { name: '鮪魚生魚片丼飯', kcal: 500 },
+      salmon_don:   { name: '鮭魚生魚片丼飯', kcal: 620 },
+      braised_half: { name: '爌肉飯半碗+小菜', kcal: 650 },
+      onigiri_whey: { name: '三角飯糰+乳清', kcal: 320 }
+    };
+
+    // 使用本地時區 (解決台灣 UTC+8 早晨日期偏移問題)
+    function formatLocalDate(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return year + '-' + month + '-' + day;
     }
 
-    const todayStr = formatDateStr(new Date());
-    let selectedDateStr = todayStr;
+    function getTodayStr(offsetDays) {
+      const d = new Date();
+      if (offsetDays) d.setDate(d.getDate() + offsetDays);
+      return formatLocalDate(d);
+    }
 
-    // App State
-    let state = {
-      startDate: todayStr,
-      dailyLogs: {}, // { 'YYYY-MM-DD': { steps: false, rice: false, poke: 0, bento: 0, drink: 0, workout: false, protein: false } }
-      bodyLogs: [
-        { date: todayStr, weight: 68.4, bf: 22.4, waist: 77.0 }
-      ]
-    };
+    function parseLocalDate(dateStr) {
+      const parts = (dateStr || getTodayStr(0)).split('-');
+      return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    }
 
-    // Load from localStorage
+    let currentSelectedDate = getTodayStr(0);
+    let resetConfirmPending = false;
+
+    function createDefaultState() {
+      return {
+        startDate: getTodayStr(0),
+        dailyLogs: {},
+        bodyLogs: [
+          { date: getTodayStr(0), weight: 68.4, bf: 22.4, waist: 77.0 }
+        ]
+      };
+    }
+
+    let appState = loadState();
+
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          state = { ...state, ...parsed };
-          if (!state.bodyLogs || state.bodyLogs.length === 0) {
-            state.bodyLogs = [{ date: state.startDate, weight: 68.4, bf: 22.4, waist: 77.0 }];
-          }
-        } else {
-          saveState();
-        }
+        if (!raw) return createDefaultState();
+        const parsed = JSON.parse(raw);
+        const def = createDefaultState();
+        return {
+          startDate: parsed.startDate || def.startDate,
+          dailyLogs: (parsed.dailyLogs && typeof parsed.dailyLogs === 'object') ? parsed.dailyLogs : {},
+          bodyLogs: (Array.isArray(parsed.bodyLogs) && parsed.bodyLogs.length > 0) ? parsed.bodyLogs : def.bodyLogs
+        };
       } catch (e) {
-        console.error('Failed to load state:', e);
+        return createDefaultState();
       }
     }
 
     function saveState() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } catch (e) {
-        console.error('Failed to save state:', e);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {}
+      renderAll();
+    }
+
+    function ensureDateLog(dateStr) {
+      if (!appState.dailyLogs[dateStr]) {
+        appState.dailyLogs[dateStr] = {
+          steps: false,
+          rice: false,
+          nofried: false,
+          swaps: 0,
+          swapList: [],
+          workout: false,
+          protein: false
+        };
       }
+      const log = appState.dailyLogs[dateStr];
+      if (typeof log.nofried === 'undefined') log.nofried = false;
+      if (!Array.isArray(log.swapList)) log.swapList = [];
+      return log;
     }
 
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.remove('opacity-0');
-      setTimeout(() => t.classList.add('opacity-0'), 1800);
-    }
-
-    // Calculate points for a single day log
     function calcDayPoints(log) {
       if (!log) return 0;
       let pts = 0;
       if (log.steps) pts += 0.45;
       if (log.rice) pts += 0.55;
-      pts += (log.poke || 0) * 1.5;
-      pts += (log.bento || 0) * 1.2;
-      pts += (log.drink || 0) * 0.5;
+      if (log.nofried) pts += 0.30;
+      if (Array.isArray(log.swapList)) {
+        for (let i = 0; i < log.swapList.length; i++) {
+          pts += Number(log.swapList[i].pts) || 0;
+        }
+      }
+      if (log.swaps && log.swaps > 0) {
+        pts += (log.swaps * 1.5);
+      }
       return Math.round(pts * 100) / 100;
     }
 
-    // Get Monday of the week for a given YYYY-MM-DD
-    function getMondayOfWeek(dateStr) {
-      const [y, m, d] = dateStr.split('-').map(Number);
-      const dt = new Date(y, m - 1, d);
-      const day = dt.getDay(); // 0 is Sun, 1 is Mon
-      const diff = dt.getDate() - day + (day === 0 ? -6 : 1);
-      return new Date(dt.setDate(diff));
+    function getSwapPointsTotal(log) {
+      if (!log) return 0;
+      let sPts = 0;
+      if (Array.isArray(log.swapList)) {
+        for (let i = 0; i < log.swapList.length; i++) {
+          sPts += Number(log.swapList[i].pts) || 0;
+        }
+      }
+      if (log.swaps && log.swaps > 0) {
+        sPts += (log.swaps * 1.5);
+      }
+      return Math.round(sPts * 100) / 100;
     }
 
-    // Get all 7 date strings (Mon-Sun) for the week containing dateStr
-    function getWeekDateStrings(dateStr) {
-      const mon = getMondayOfWeek(dateStr);
-      const list = [];
+    function getMondayOfCurrentWeek(dateStr) {
+      const d = parseLocalDate(dateStr);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      d.setDate(diff);
+      return d;
+    }
+
+    function calcWeeklyStats(refDateStr) {
+      const monday = getMondayOfCurrentWeek(refDateStr);
+      let totalPts = 0;
+      let totalSwapPts = 0;
       for (let i = 0; i < 7; i++) {
-        const temp = new Date(mon);
-        temp.setDate(mon.getDate() + i);
-        list.push(formatDateStr(temp));
+        const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+        const dStr = formatLocalDate(d);
+        const log = appState.dailyLogs[dStr];
+        if (log) {
+          totalPts += calcDayPoints(log);
+          totalSwapPts += getSwapPointsTotal(log);
+        }
       }
-      return list;
+      return {
+        points: Math.round(totalPts * 100) / 100,
+        kcal: Math.round(totalPts * 250),
+        swapPts: Math.round(totalSwapPts * 100) / 100
+      };
     }
 
-    // Ensure day log object exists
-    function getDayLog(dateStr) {
-      if (!state.dailyLogs[dateStr]) {
-        state.dailyLogs[dateStr] = {
-          steps: false,
-          rice: false,
-          poke: 0,
-          bento: 0,
-          drink: 0,
-          workout: false,
-          protein: false
-        };
-      }
-      return state.dailyLogs[dateStr];
-    }
-
-    // Toggle boolean flags
-    function toggleDailyFlag(key) {
-      const log = getDayLog(selectedDateStr);
+    function toggleTask(key) {
+      const log = ensureDateLog(currentSelectedDate);
       log[key] = !log[key];
       saveState();
-      renderAll();
-      if (log.steps && log.rice && (key === 'steps' || key === 'rice')) {
-        showToast('🎉 今日基礎 KPI 完美達標 (+1.0 點 / -250 kcal)');
+    }
+
+    function updateSwapPreview() {
+      const cKey = document.getElementById('cravedSelect').value;
+      const eKey = document.getElementById('eatenSelect').value;
+      const craved = CRAVED_FOODS[cKey] || CRAVED_FOODS.fastfood;
+      const eaten = HEALTHY_SWAPS[eKey] || HEALTHY_SWAPS.poke;
+
+      const rawDiff = craved.kcal - eaten.kcal;
+      const savedKcal = Math.max(100, rawDiff);
+      const pts = Math.round((savedKcal / 250) * 100) / 100;
+
+      const previewEl = document.getElementById('swapPreviewText');
+      if (rawDiff <= 0) {
+        previewEl.innerHTML = '高蛋白優化 ➔ <b style="color:var(--sage);">+' + pts.toFixed(2) + ' pt</b>';
+      } else {
+        previewEl.innerHTML = '省下 ' + savedKcal + ' kcal ➔ <b>+' + pts.toFixed(2) + ' pt</b>';
       }
     }
 
-    // Update food swap counter
-    function updateSwapCount(key, delta) {
-      const log = getDayLog(selectedDateStr);
-      const next = Math.max(0, (log[key] || 0) + delta);
-      log[key] = next;
+    function addCustomSwap() {
+      const cKey = document.getElementById('cravedSelect').value;
+      const eKey = document.getElementById('eatenSelect').value;
+      const craved = CRAVED_FOODS[cKey] || CRAVED_FOODS.fastfood;
+      const eaten = HEALTHY_SWAPS[eKey] || HEALTHY_SWAPS.poke;
+
+      const rawDiff = craved.kcal - eaten.kcal;
+      const savedKcal = Math.max(100, rawDiff);
+      const pts = Math.round((savedKcal / 250) * 100) / 100;
+
+      const log = ensureDateLog(currentSelectedDate);
+      log.swapList.push({
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        cravedName: craved.name,
+        eatenName: eaten.name,
+        savedKcal: savedKcal,
+        pts: pts
+      });
       saveState();
-      renderAll();
-      if (delta > 0) {
-        if (key === 'poke') showToast('🥗 波奇碗健康爆擊！+1.5 點 (-380 kcal)');
-        if (key === 'bento') showToast('🍱 減油便當替換！+1.2 點 (-300 kcal)');
-        if (key === 'drink') showToast('🍵 飲品/快走微調！+0.5 點 (-125 kcal)');
-      }
     }
 
-    // Shift selected date
-    function shiftDate(days) {
-      const [y, m, d] = selectedDateStr.split('-').map(Number);
-      const dt = new Date(y, m - 1, d);
-      dt.setDate(dt.getDate() + days);
-      selectedDateStr = formatDateStr(dt);
-      renderAll();
+    function removeSwapItem(id) {
+      const log = ensureDateLog(currentSelectedDate);
+      log.swapList = log.swapList.filter(function(item) { return item.id !== id; });
+      saveState();
     }
 
-    function selectDate(dateStr) {
-      selectedDateStr = dateStr;
-      renderAll();
+    function removeLegacySwap() {
+      const log = ensureDateLog(currentSelectedDate);
+      if (log.swaps > 0) log.swaps -= 1;
+      saveState();
     }
 
-    function selectToday() {
-      selectedDateStr = formatDateStr(new Date());
+    function changeDate(dir) {
+      const d = parseLocalDate(currentSelectedDate);
+      d.setDate(d.getDate() + dir);
+      currentSelectedDate = formatLocalDate(d);
       renderAll();
     }
 
-    // Render Header & Daily Tab
-    function renderDailyTab() {
-      // 1. Calculate Total Points across all logs
-      let totalPts = 0;
-      Object.values(state.dailyLogs).forEach(l => {
-        totalPts += calcDayPoints(l);
-      });
-      totalPts = Math.round(totalPts * 100) / 100;
-      const totalKcal = Math.round(totalPts * 250);
-      const estFatLost = (totalKcal / 7700).toFixed(2);
+    function addBodyLog() {
+      const wInput = document.getElementById('inputWeight');
+      const bfInput = document.getElementById('inputBf');
+      const waistInput = document.getElementById('inputWaist');
 
-      // Calculate Current Week number from startDate
-      const [sy, sm, sd] = state.startDate.split('-').map(Number);
-      const startDt = new Date(sy, sm - 1, sd);
-      const nowDt = new Date();
-      const diffDays = Math.max(0, Math.floor((nowDt - startDt) / (1000 * 60 * 60 * 24)));
-      const currentWeekNum = Math.min(12, Math.floor(diffDays / 7) + 1);
+      const w = parseFloat(wInput.value);
+      const bf = parseFloat(bfInput.value);
+      const waist = parseFloat(waistInput.value);
 
-      document.getElementById('header-week-badge').textContent = `WEEK ${currentWeekNum} / 12`;
-      document.getElementById('header-fat-lost').textContent = estFatLost;
-      document.getElementById('header-total-kcal').textContent = totalKcal.toLocaleString();
-      document.getElementById('header-total-pts').textContent = totalPts.toFixed(1);
-      const totalPct = Math.min(100, (totalKcal / 21000) * 100);
-      document.getElementById('header-total-bar').style.width = `${totalPct}%`;
-      document.getElementById('setting-start-date').textContent = state.startDate;
-
-      // 2. Weekly Score for the selectedDateStr's week
-      const weekDates = getWeekDateStrings(selectedDateStr);
-      let weekPts = 0;
-      weekDates.forEach(dStr => {
-        weekPts += calcDayPoints(state.dailyLogs[dStr]);
-      });
-      weekPts = Math.round(weekPts * 100) / 100;
-      const weekKcal = Math.round(weekPts * 250);
-
-      document.getElementById('weekly-pts-display').textContent = weekPts.toFixed(2).replace(/\.00$/, '.0');
-      document.getElementById('weekly-kcal-display').textContent = `(-${weekKcal} kcal)`;
-      const weekPct = Math.min(100, (weekPts / 7.0) * 100);
-      document.getElementById('weekly-pts-bar').style.width = `${weekPct}%`;
-
-      const badge = document.getElementById('weekly-status-badge');
-      const bankText = document.getElementById('smart-bank-text');
-      if (weekPts >= 7.0) {
-        const surplus = (weekPts - 7.0).toFixed(1);
-        badge.textContent = '本週達標 🎉';
-        badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-sage/20 text-sage border border-sage/40';
-        bankText.innerHTML = `本週已滿 7 點並超額 <strong class="text-sage">+${surplus} 點</strong>！週末聚餐可安心享受一頓好料，或將額度留作加速減脂進度。`;
-      } else if (weekPts >= 4.5) {
-        const remain = (7.0 - weekPts).toFixed(1);
-        badge.textContent = '進度穩定 🔥';
-        badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-accent/20 text-accentLight border border-accent/40';
-        bankText.innerHTML = `距離本週目標還差 <strong class="text-white">${remain} 點</strong>。只要維持平日步數與減半碗飯，或來一次「波奇碗替換 (+1.5點)」就能輕鬆達標！`;
-      } else {
-        const remain = (7.0 - weekPts).toFixed(1);
-        badge.textContent = `尚差 ${remain} 點`;
-        badge.className = 'px-2.5 py-1 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700';
-        bankText.innerHTML = `每天完成「步數+減半碗飯」即得 1 點。若外食改吃波奇碗可直接賺 <strong class="text-accentLight">+1.5 點</strong> 抵免 3 頓減飯！`;
-      }
-
-      // 3. Render 7-Day Strip
-      const dayNames = ['一', '二', '三', '四', '五', '六', '日'];
-      const stripEl = document.getElementById('week-day-strip');
-      stripEl.innerHTML = '';
-      weekDates.forEach((dStr, idx) => {
-        const isSelected = dStr === selectedDateStr;
-        const isToday = dStr === formatDateStr(new Date());
-        const pts = calcDayPoints(state.dailyLogs[dStr]);
-        const dayNum = dStr.split('-')[2];
-
-        const btn = document.createElement('button');
-        btn.onclick = () => selectDate(dStr);
-        btn.className = `py-1.5 rounded-xl flex flex-col items-center justify-center transition border ${
-          isSelected
-            ? 'bg-accent text-white border-accent shadow-md'
-            : isToday
-            ? 'bg-zinc-800/90 text-zinc-100 border-zinc-600'
-            : 'bg-zinc-900/50 text-zinc-400 border-transparent hover:bg-zinc-800/50'
-        }`;
-
-        let dotColor = 'bg-zinc-700';
-        if (pts >= 1.0) dotColor = isSelected ? 'bg-white' : 'bg-sage';
-        else if (pts > 0) dotColor = isSelected ? 'bg-amber-200' : 'bg-accentLight';
-
-        btn.innerHTML = `
-          <span class="text-[10px] opacity-80">${dayNames[idx]}</span>
-          <span class="text-xs font-mono font-bold mt-0.5">${dayNum}</span>
-          <span class="w-1.5 h-1.5 rounded-full mt-1 ${dotColor}"></span>
-        `;
-        stripEl.appendChild(btn);
-      });
-
-      const realToday = formatDateStr(new Date());
-      document.getElementById('selected-date-label').textContent =
-        selectedDateStr === realToday ? `今天 (${selectedDateStr})` : `檢視日期：${selectedDateStr}`;
-      document.getElementById('btn-back-today').classList.toggle('hidden', selectedDateStr === realToday);
-
-      // 4. Render Selected Day Toggles
-      const log = getDayLog(selectedDateStr);
-      const basePts = (log.steps ? 0.45 : 0) + (log.rice ? 0.55 : 0);
-      const dayTotalPts = calcDayPoints(log);
-      document.getElementById('daily-base-status').textContent = `當日合計 +${dayTotalPts.toFixed(2).replace(/\.00$/, '.0')} pt (-${Math.round(dayTotalPts * 250)} kcal)`;
-
-      // Steps UI
-      const stepsCard = document.getElementById('card-kpi-steps');
-      const stepsCheck = document.getElementById('check-kpi-steps');
-      const stepsIcon = document.getElementById('icon-kpi-steps');
-      if (log.steps) {
-        stepsCard.className = 'w-full text-left bg-accent/15 active:scale-[0.99] transition-all rounded-2xl p-3.5 border border-accent flex items-center justify-between';
-        stepsCheck.className = 'w-6 h-6 rounded-full bg-accent border-2 border-accent flex items-center justify-center transition-all';
-        stepsCheck.querySelector('svg').classList.remove('opacity-0');
-        stepsIcon.className = 'w-11 h-11 rounded-xl bg-accent/20 flex items-center justify-center text-xl border border-accent/40';
-      } else {
-        stepsCard.className = 'w-full text-left bg-bgCard hover:bg-bgElevated active:scale-[0.99] transition-all rounded-2xl p-3.5 border border-borderSubtle flex items-center justify-between';
-        stepsCheck.className = 'w-6 h-6 rounded-full border-2 border-zinc-600 flex items-center justify-center transition-all';
-        stepsCheck.querySelector('svg').classList.add('opacity-0');
-        stepsIcon.className = 'w-11 h-11 rounded-xl bg-zinc-800 flex items-center justify-center text-xl border border-zinc-700';
-      }
-
-      // Rice UI
-      const riceCard = document.getElementById('card-kpi-rice');
-      const riceCheck = document.getElementById('check-kpi-rice');
-      const riceIcon = document.getElementById('icon-kpi-rice');
-      if (log.rice) {
-        riceCard.className = 'w-full text-left bg-accent/15 active:scale-[0.99] transition-all rounded-2xl p-3.5 border border-accent flex items-center justify-between';
-        riceCheck.className = 'w-6 h-6 rounded-full bg-accent border-2 border-accent flex items-center justify-center transition-all';
-        riceCheck.querySelector('svg').classList.remove('opacity-0');
-        riceIcon.className = 'w-11 h-11 rounded-xl bg-accent/20 flex items-center justify-center text-xl border border-accent/40';
-      } else {
-        riceCard.className = 'w-full text-left bg-bgCard hover:bg-bgElevated active:scale-[0.99] transition-all rounded-2xl p-3.5 border border-borderSubtle flex items-center justify-between';
-        riceCheck.className = 'w-6 h-6 rounded-full border-2 border-zinc-600 flex items-center justify-center transition-all';
-        riceCheck.querySelector('svg').classList.add('opacity-0');
-        riceIcon.className = 'w-11 h-11 rounded-xl bg-zinc-800 flex items-center justify-center text-xl border border-zinc-700';
-      }
-
-      // Swaps UI
-      document.getElementById('count-swap-poke').textContent = log.poke || 0;
-      document.getElementById('count-swap-bento').textContent = log.bento || 0;
-      document.getElementById('count-swap-drink').textContent = log.drink || 0;
-
-      // Muscle Retention Shield UI
-      const workoutCard = document.getElementById('card-shield-workout');
-      const workoutDot = document.getElementById('dot-shield-workout');
-      if (log.workout) {
-        workoutCard.className = 'p-3 rounded-2xl bg-sage/15 border border-sage text-left transition-all flex flex-col justify-between h-24';
-        workoutDot.className = 'w-4 h-4 rounded-full bg-sage border border-sage flex items-center justify-center';
-        workoutDot.innerHTML = '<svg class="w-2.5 h-2.5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"/></svg>';
-      } else {
-        workoutCard.className = 'p-3 rounded-2xl bg-bgCard border border-borderSubtle text-left transition-all flex flex-col justify-between h-24';
-        workoutDot.className = 'w-4 h-4 rounded-full border border-zinc-600 flex items-center justify-center';
-        workoutDot.innerHTML = '';
-      }
-
-      const proteinCard = document.getElementById('card-shield-protein');
-      const proteinDot = document.getElementById('dot-shield-protein');
-      if (log.protein) {
-        proteinCard.className = 'p-3 rounded-2xl bg-sage/15 border border-sage text-left transition-all flex flex-col justify-between h-24';
-        proteinDot.className = 'w-4 h-4 rounded-full bg-sage border border-sage flex items-center justify-center';
-        proteinDot.innerHTML = '<svg class="w-2.5 h-2.5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"/></svg>';
-      } else {
-        proteinCard.className = 'p-3 rounded-2xl bg-bgCard border border-borderSubtle text-left transition-all flex flex-col justify-between h-24';
-        proteinDot.className = 'w-4 h-4 rounded-full border border-zinc-600 flex items-center justify-center';
-        proteinDot.innerHTML = '';
-      }
-    }
-
-    // Add Body Stat Entry
-    function addBodyStat() {
-      const dateVal = document.getElementById('input-stat-date').value || formatDateStr(new Date());
-      const weightVal = parseFloat(document.getElementById('input-stat-weight').value);
-      const bfInput = parseFloat(document.getElementById('input-stat-bf').value);
-      const waistInput = parseFloat(document.getElementById('input-stat-waist').value);
-
-      if (isNaN(weightVal) || weightVal < 40 || weightVal > 150) {
-        showToast('請輸入有效的體重數值');
+      if (isNaN(w) || w < 35 || w > 180) {
+        wInput.style.borderColor = '#EF4444';
+        setTimeout(function() { wInput.style.borderColor = 'var(--border)'; }, 1500);
         return;
       }
 
-      // Sort existing logs to get latest fallback for optional BF% and Waist
-      const sorted = [...state.bodyLogs].sort((a, b) => a.date.localeCompare(b.date));
-      const lastEntry = sorted[sorted.length - 1] || { bf: 22.4, waist: 77.0 };
-
+      const last = appState.bodyLogs[appState.bodyLogs.length - 1] || { weight: 68.4, bf: 22.4, waist: 77.0 };
       const newEntry = {
-        date: dateVal,
-        weight: Math.round(weightVal * 10) / 10,
-        bf: !isNaN(bfInput) ? Math.round(bfInput * 10) / 10 : lastEntry.bf,
-        waist: !isNaN(waistInput) ? Math.round(waistInput * 10) / 10 : lastEntry.waist
+        date: currentSelectedDate,
+        weight: w,
+        bf: isNaN(bf) ? Number(last.bf) : bf,
+        waist: isNaN(waist) ? Number(last.waist) : waist
       };
 
-      // Replace if same date exists, otherwise push
-      const existingIdx = state.bodyLogs.findIndex(item => item.date === dateVal);
-      if (existingIdx >= 0) {
-        state.bodyLogs[existingIdx] = newEntry;
+      const idx = appState.bodyLogs.findIndex(function(item) { return item.date === currentSelectedDate; });
+      if (idx >= 0) {
+        appState.bodyLogs[idx] = newEntry;
       } else {
-        state.bodyLogs.push(newEntry);
+        appState.bodyLogs.push(newEntry);
+        appState.bodyLogs.sort(function(a, b) { return a.date.localeCompare(b.date); });
       }
 
-      state.bodyLogs.sort((a, b) => a.date.localeCompare(b.date));
+      wInput.value = '';
+      bfInput.value = '';
+      waistInput.value = '';
       saveState();
-      renderStatsTab();
-      showToast('✅ 體態數據已更新！');
     }
 
-    function deleteBodyStat(dateStr) {
-      if (state.bodyLogs.length <= 1) {
-        showToast('需至少保留一筆基準紀錄');
+    function deleteBodyLog(dateStr) {
+      if (appState.bodyLogs.length <= 1) return;
+      appState.bodyLogs = appState.bodyLogs.filter(function(item) { return item.date !== dateStr; });
+      saveState();
+    }
+
+    function showBackupStatus(msg, isError) {
+      const el = document.getElementById('backupStatusMsg');
+      el.textContent = msg;
+      el.style.color = isError ? '#FCA5A5' : 'var(--sage)';
+      el.classList.remove('hidden');
+      setTimeout(function() { el.classList.add('hidden'); }, 4000);
+    }
+
+    function exportDataCopy() {
+      const jsonStr = JSON.stringify(appState);
+      const area = document.getElementById('backupJsonArea');
+      area.value = jsonStr;
+      area.focus();
+      area.select();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(jsonStr).then(function() {
+          showBackupStatus('✅ 已複製 JSON 備份碼！可直接貼到備忘錄保存。', false);
+        }).catch(function() {
+          showBackupStatus('✅ 備份碼已顯示在上方文字框，請全選複製。', false);
+        });
+      } else {
+        try { document.execCommand('copy'); } catch (e) {}
+        showBackupStatus('✅ 備份碼已產生並複製！', false);
+      }
+    }
+
+    function exportDataFile() {
+      const jsonStr = JSON.stringify(appState, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'microcut_backup_' + getTodayStr(0) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showBackupStatus('✅ 已啟動下載 .json 備份檔！', false);
+    }
+
+    function importDataFromJson() {
+      const raw = document.getElementById('backupJsonArea').value.trim();
+      if (!raw) {
+        showBackupStatus('⚠️ 請先在文字框貼上 JSON 備份碼！', true);
         return;
       }
-      state.bodyLogs = state.bodyLogs.filter(item => item.date !== dateStr);
-      saveState();
-      renderStatsTab();
-      showToast('已刪除該筆紀錄');
-    }
-
-    // Render Stats & LBM Guardrail Tab
-    function renderStatsTab() {
-      const sorted = [...state.bodyLogs].sort((a, b) => a.date.localeCompare(b.date));
-      const latest = sorted[sorted.length - 1];
-
-      // Pre-fill inputs with latest values as placeholders
-      const dateInput = document.getElementById('input-stat-date');
-      if (!dateInput.value) dateInput.value = formatDateStr(new Date());
-      document.getElementById('input-stat-weight').placeholder = latest.weight.toFixed(1);
-      document.getElementById('input-stat-bf').placeholder = latest.bf.toFixed(1);
-      document.getElementById('input-stat-waist').placeholder = latest.waist.toFixed(1);
-
-      // Calculate LBM & Fat Mass
-      const fatMass = +(latest.weight * (latest.bf / 100)).toFixed(1);
-      const lbm = +(latest.weight - fatMass).toFixed(1);
-
-      // Calculate 7-entry moving average weight
-      const recentSlice = sorted.slice(-7);
-      const avgWeight = +(recentSlice.reduce((acc, cur) => acc + cur.weight, 0) / recentSlice.length).toFixed(1);
-
-      document.getElementById('stat-current-lbm').innerHTML = `${lbm.toFixed(1)} <span class="text-xs font-normal text-zinc-400">kg</span>`;
-      document.getElementById('stat-current-fatmass').innerHTML = `${fatMass.toFixed(1)} <span class="text-xs font-normal text-zinc-400">kg</span>`;
-      document.getElementById('stat-moving-avg').innerHTML = `${avgWeight.toFixed(1)} <span class="text-xs font-normal text-zinc-400">kg</span>`;
-
-      // LBM Guardrail Alert
-      const alertCard = document.getElementById('lbm-alert-card');
-      const feedbackEl = document.getElementById('lbm-feedback-text');
-      if (lbm >= 53.0) {
-        alertCard.className = 'bg-bgCard rounded-2xl p-4 border border-sage/50 shadow-lg';
-        feedbackEl.innerHTML = `✅ <strong>保肌狀態極佳！</strong>除脂體重維持在 <span class="text-sage font-mono font-bold">${lbm} kg</span>，減去的體重幾乎全數來自純脂肪。`;
-      } else if (lbm >= 52.6) {
-        alertCard.className = 'bg-bgCard rounded-2xl p-4 border border-amber-500/50 shadow-lg';
-        feedbackEl.innerHTML = `⚠️ <strong>輕微水分或肝醣波動：</strong>除脂體重為 <span class="text-amber-300 font-mono font-bold">${lbm} kg</span>。請確保練後碳水與每日蛋白質 (125g+) 充足。`;
-      } else {
-        alertCard.className = 'bg-bgCard rounded-2xl p-4 border border-red-500/60 shadow-lg';
-        feedbackEl.innerHTML = `🚨 <strong>掉肌警報：</strong>除脂體重降至 <span class="text-red-400 font-mono font-bold">${lbm} kg</span>。建議本週午餐恢復正常飯量、睡滿 7.5 小時，並嚴禁降低重訓重量！`;
-      }
-
-      // Progress Bars toward 12-week targets
-      document.getElementById('bar-label-weight').textContent = `${latest.weight.toFixed(1)} kg`;
-      const weightPct = Math.max(4, Math.min(100, ((BASELINE.startWeight - latest.weight) / (BASELINE.startWeight - BASELINE.targetWeight)) * 100));
-      document.getElementById('bar-prog-weight').style.width = `${weightPct}%`;
-
-      document.getElementById('bar-label-bf').textContent = `${latest.bf.toFixed(1)} %`;
-      const bfPct = Math.max(4, Math.min(100, ((BASELINE.startBF - latest.bf) / (BASELINE.startBF - BASELINE.targetBF)) * 100));
-      document.getElementById('bar-prog-bf').style.width = `${bfPct}%`;
-
-      document.getElementById('bar-label-waist').textContent = `${latest.waist.toFixed(1)} cm`;
-      const waistPct = Math.max(4, Math.min(100, ((BASELINE.startWaist - latest.waist) / (BASELINE.startWaist - BASELINE.targetWaist)) * 100));
-      document.getElementById('bar-prog-waist').style.width = `${waistPct}%`;
-
-      // Render SVG Chart
-      renderWeightChart(sorted);
-
-      // Render History List (Newest first)
-      const listEl = document.getElementById('body-log-list');
-      listEl.innerHTML = '';
-      [...sorted].reverse().forEach(item => {
-        const itemFat = +(item.weight * (item.bf / 100)).toFixed(1);
-        const itemLbm = +(item.weight - itemFat).toFixed(1);
-        const row = document.createElement('div');
-        row.className = 'flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/70 border border-zinc-800 text-xs';
-        row.innerHTML = `
-          <div>
-            <span class="font-mono font-bold text-zinc-200">${item.date}</span>
-            <div class="text-[11px] text-zinc-400 mt-0.5">
-              除脂體重 <strong class="text-sage font-mono">${itemLbm}kg</strong> ｜ 腰圍 <span class="font-mono">${item.waist}cm</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="text-right font-mono">
-              <div class="font-bold text-white">${item.weight.toFixed(1)} kg</div>
-              <div class="text-[11px] text-accentLight">${item.bf.toFixed(1)}%</div>
-            </div>
-            <button onclick="deleteBodyStat('${item.date}')" class="text-zinc-500 hover:text-red-400 p-1">✕</button>
-          </div>
-        `;
-        listEl.appendChild(row);
-      });
-    }
-
-    // Simple Responsive SVG Line Chart for Weight
-    function renderWeightChart(sortedLogs) {
-      const container = document.getElementById('svg-chart-container');
-      const pts = sortedLogs.slice(-10); // show up to last 10 points
-      const w = 320, h = 110, padX = 24, padY = 18;
-
-      const minW = Math.min(65.0, ...pts.map(p => p.weight)) - 0.4;
-      const maxW = Math.max(69.0, ...pts.map(p => p.weight)) + 0.4;
-
-      const getX = (i) => pts.length === 1 ? w / 2 : padX + (i / (pts.length - 1)) * (w - padX * 2);
-      const getY = (val) => h - padY - ((val - minW) / (maxW - minW)) * (h - padY * 2);
-
-      const targetY = getY(BASELINE.targetWeight);
-      let pathD = '';
-      let circles = '';
-
-      pts.forEach((p, idx) => {
-        const cx = getX(idx);
-        const cy = getY(p.weight);
-        pathD += idx === 0 ? `M ${cx} ${cy}` : ` L ${cx} ${cy}`;
-        circles += `
-          <circle cx="${cx}" cy="${cy}" r="3.5" fill="#E07A5F" stroke="#121214" stroke-width="1.5" />
-          <text x="${cx}" y="${cy - 7}" fill="#D4D4D8" font-size="9" font-family="JetBrains Mono" text-anchor="middle">${p.weight}</text>
-        `;
-      });
-
-      container.innerHTML = `
-        <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
-          <!-- Target Weight Dashed Line (65.7kg) -->
-          <line x1="${padX}" y1="${targetY}" x2="${w - padX}" y2="${targetY}" stroke="#52B788" stroke-width="1" stroke-dasharray="4 3" opacity="0.7" />
-          <text x="${w - padX}" y="${targetY - 4}" fill="#52B788" font-size="8" font-family="JetBrains Mono" text-anchor="end">目標 65.7kg</text>
-          
-          <!-- Weight Line -->
-          ${pts.length > 1 ? `<path d="${pathD}" fill="none" stroke="#E07A5F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />` : ''}
-          ${circles}
-        </svg>
-      `;
-    }
-
-    // Tab Switching
-    function switchTab(tabName) {
-      ['daily', 'stats', 'guide'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tabName);
-        const btn = document.getElementById(`nav-btn-${t}`);
-        if (t === tabName) {
-          btn.className = 'flex flex-col items-center gap-1 text-accent transition';
-        } else {
-          btn.className = 'flex flex-col items-center gap-1 text-zinc-500 hover:text-zinc-300 transition';
-        }
-      });
-      if (tabName === 'stats') renderStatsTab();
-    }
-
-    // Modals for Start Date & Data Backup
-    function openStartDateModal() {
-      const overlay = document.getElementById('modal-overlay');
-      document.getElementById('modal-title').textContent = '設定 12 週計畫開跑日期';
-      document.getElementById('modal-body').innerHTML = `
-        <p class="text-xs text-zinc-400 mb-2">系統會根據開跑日自動計算目前處於第幾週 (Week 1 ~ 12)：</p>
-        <input type="date" id="modal-input-startdate" value="${state.startDate}" class="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-sm text-white font-mono" />
-      `;
-      const confirmBtn = document.getElementById('modal-confirm-btn');
-      confirmBtn.onclick = () => {
-        const val = document.getElementById('modal-input-startdate').value;
-        if (val) {
-          state.startDate = val;
-          saveState();
-          renderAll();
-          closeModal();
-          showToast('已更新計畫開跑日');
-        }
-      };
-      overlay.classList.remove('hidden');
-    }
-
-    function exportData() {
-      const jsonStr = JSON.stringify(state);
-      const tempArea = document.createElement('textarea');
-      tempArea.value = jsonStr;
-      document.body.appendChild(tempArea);
-      tempArea.select();
       try {
-        document.execCommand('copy');
-        showToast('📋 備份代碼已複製到剪貼簿！');
-      } catch (err) {
-        showToast('複製失敗，請手動備份');
-      }
-      document.body.removeChild(tempArea);
-    }
-
-    function openImportModal() {
-      const overlay = document.getElementById('modal-overlay');
-      document.getElementById('modal-title').textContent = '還原備份資料';
-      document.getElementById('modal-body').innerHTML = `
-        <p class="text-xs text-zinc-400 mb-2">請貼上先前複製的 JSON 備份代碼：</p>
-        <textarea id="modal-input-json" rows="4" placeholder='{"startDate":...}' class="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-2.5 text-xs text-white font-mono"></textarea>
-      `;
-      const confirmBtn = document.getElementById('modal-confirm-btn');
-      confirmBtn.onclick = () => {
-        const raw = document.getElementById('modal-input-json').value.trim();
-        try {
-          const parsed = JSON.parse(raw);
-          if (parsed && parsed.dailyLogs && parsed.bodyLogs) {
-            state = parsed;
-            saveState();
-            renderAll();
-            closeModal();
-            showToast('✅ 備份資料還原成功！');
-          } else {
-            showToast('❌ 格式不正確');
-          }
-        } catch (e) {
-          showToast('❌ 無法解析備份碼');
+        const parsed = JSON.parse(raw);
+        if (!parsed.dailyLogs || !Array.isArray(parsed.bodyLogs)) {
+          throw new Error('Invalid');
         }
-      };
-      overlay.classList.remove('hidden');
+        appState = {
+          startDate: parsed.startDate || getTodayStr(0),
+          dailyLogs: parsed.dailyLogs,
+          bodyLogs: parsed.bodyLogs
+        };
+        saveState();
+        showBackupStatus('🎉 資料還原成功！所有紀錄已更新。', false);
+      } catch (err) {
+        showBackupStatus('❌ 備份碼格式錯誤，請確認複製了完整的 JSON 文字。', true);
+      }
     }
 
-    function closeModal() {
-      document.getElementById('modal-overlay').classList.add('hidden');
+    function updateStartDate() {
+      const val = document.getElementById('startDateInput').value;
+      if (val) {
+        appState.startDate = val;
+        saveState();
+      }
+    }
+
+    function handleResetClick() {
+      const btn = document.getElementById('resetBtn');
+      if (!resetConfirmPending) {
+        resetConfirmPending = true;
+        btn.textContent = '⚠️ 確定要清空嗎？請再點一次確認';
+        btn.style.background = '#7F1D1D';
+        btn.style.color = '#FFFFFF';
+        setTimeout(function() {
+          resetConfirmPending = false;
+          btn.textContent = '重置所有資料為初始值';
+          btn.style.background = 'var(--bg-elevated)';
+          btn.style.color = '#FCA5A5';
+        }, 3500);
+      } else {
+        resetConfirmPending = false;
+        localStorage.removeItem(STORAGE_KEY);
+        appState = createDefaultState();
+        currentSelectedDate = getTodayStr(0);
+        btn.textContent = '重置所有資料為初始值';
+        btn.style.background = 'var(--bg-elevated)';
+        btn.style.color = '#FCA5A5';
+        saveState();
+      }
+    }
+
+    function switchTab(tab) {
+      const tabs = ['daily', 'body', 'guide'];
+      for (let i = 0; i < tabs.length; i++) {
+        const t = tabs[i];
+        const sec = document.getElementById('tab-' + t);
+        const nav = document.getElementById('nav-' + t);
+        if (t === tab) {
+          sec.classList.remove('hidden');
+          nav.classList.add('active');
+        } else {
+          sec.classList.add('hidden');
+          nav.classList.remove('active');
+        }
+      }
+    }
+
+    function renderTaskBtn(btnId, chkId, isChecked, colorType) {
+      const btn = document.getElementById(btnId);
+      const chk = document.getElementById(chkId);
+      btn.classList.remove('active-orange', 'active-green');
+      if (isChecked) {
+        btn.classList.add(colorType === 'green' ? 'active-green' : 'active-orange');
+        chk.textContent = '✓';
+      } else {
+        chk.textContent = '';
+      }
     }
 
     function renderAll() {
-      renderDailyTab();
-      renderStatsTab();
+      // 1. 週次計算
+      const start = parseLocalDate(appState.startDate);
+      const now = parseLocalDate(currentSelectedDate);
+      const diffDays = Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)));
+      const weekNum = Math.min(12, Math.floor(diffDays / 7) + 1);
+      document.getElementById('weekBadge').textContent = 'WEEK ' + weekNum + ' / 12';
+      document.getElementById('startDateInput').value = appState.startDate;
+
+      // 2. 本週積分看板
+      const weekly = calcWeeklyStats(currentSelectedDate);
+      document.getElementById('weeklyPoints').textContent = weekly.points.toFixed(2);
+      document.getElementById('weeklyKcalText').textContent = '本週累積赤字: -' + weekly.kcal + ' kcal';
+      const pct = Math.min(100, Math.round((weekly.points / 7) * 100));
+      document.getElementById('weeklyProgressBar').style.width = pct + '%';
+
+      const remain = Math.max(0, 7 - weekly.points);
+      document.getElementById('weeklyStatusText').textContent = remain === 0
+        ? '🎉 本週 7 點目標已超額達成！'
+        : '距離本週達標還差 ' + remain.toFixed(2) + ' 點';
+
+      // 3. 今日打卡狀態
+      const todayStr = getTodayStr(0);
+      document.getElementById('currentDateDisplay').textContent =
+        currentSelectedDate === todayStr ? '今天 (' + currentSelectedDate + ')' : currentSelectedDate;
+
+      const dayLog = ensureDateLog(currentSelectedDate);
+      const dayPts = calcDayPoints(dayLog);
+      document.getElementById('dailyPointSummary').textContent =
+        '今日已獲: ' + dayPts.toFixed(2) + ' pt (-' + Math.round(dayPts * 250) + ' kcal)';
+
+      renderTaskBtn('btn-steps', 'chk-steps', dayLog.steps, 'orange');
+      renderTaskBtn('btn-rice', 'chk-rice', dayLog.rice, 'orange');
+      renderTaskBtn('btn-nofried', 'chk-nofried', dayLog.nofried, 'orange');
+      renderTaskBtn('btn-workout', 'chk-workout', dayLog.workout, 'green');
+      renderTaskBtn('btn-protein', 'chk-protein', dayLog.protein, 'green');
+
+      // 渲染替換紀錄
+      const swapListEl = document.getElementById('todaySwapList');
+      let swapHtml = '';
+      if (dayLog.swaps && dayLog.swaps > 0) {
+        swapHtml += '<div class="swap-item">' +
+          '<span>🥗 舊版波奇碗替換 x ' + dayLog.swaps + '</span>' +
+          '<div><b class="mono" style="color:var(--accent-light);">+' + (dayLog.swaps * 1.5).toFixed(2) + ' pt</b>' +
+          '<button type="button" class="del-btn" onclick="removeLegacySwap()">✕</button></div></div>';
+      }
+      if (Array.isArray(dayLog.swapList)) {
+        for (let i = 0; i < dayLog.swapList.length; i++) {
+          const item = dayLog.swapList[i];
+          swapHtml += '<div class="swap-item">' +
+            '<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:6px;">' +
+              '<span style="color:var(--text-muted);text-decoration:line-through;">' + item.cravedName + '</span>' +
+              ' ➔ <b>' + item.eatenName + '</b> ' +
+              '<span class="mono" style="font-size:10px;color:var(--text-muted);">(-' + item.savedKcal + 'kcal)</span>' +
+            '</div>' +
+            '<div style="flex-shrink:0;">' +
+              '<b class="mono" style="color:var(--accent-light);">+' + Number(item.pts).toFixed(2) + ' pt</b>' +
+              '<button type="button" class="del-btn" onclick="removeSwapItem(' + item.id + ')">✕</button>' +
+            '</div></div>';
+        }
+      }
+      swapListEl.innerHTML = swapHtml;
+
+      const privilegeBox = document.getElementById('jackpotPrivilegeBox');
+      if (weekly.swapPts > 0) {
+        const freeMeals = Math.floor((weekly.swapPts * 250) / 140);
+        privilegeBox.innerHTML = '🎉 本週靠「飲食替換」已賺取 <b>+' + weekly.swapPts.toFixed(2) + ' 點</b>！相當於多出 <b>' + freeMeals + ' 頓午餐免減白飯</b> 的彈性額度！';
+      } else {
+        privilegeBox.innerHTML = '💡 替換賺到的點數可當作「減脂加速器」，或折抵週末聚餐免減白飯！';
+      }
+
+      // 4. 體態與 LBM 看板
+      const logs = appState.bodyLogs;
+      const latest = logs[logs.length - 1] || { weight: 68.4, bf: 22.4, waist: 77.0 };
+      const wVal = Number(latest.weight) || 68.4;
+      const bfVal = Number(latest.bf) || 22.4;
+      const waistVal = Number(latest.waist) || 77.0;
+      const latestLbm = +(wVal * (1 - bfVal / 100)).toFixed(1);
+
+      document.getElementById('stat-weight').textContent = wVal.toFixed(1);
+      document.getElementById('stat-bf').textContent = bfVal.toFixed(1) + '%';
+      document.getElementById('stat-lbm').textContent = latestLbm.toFixed(1);
+      document.getElementById('stat-waist').textContent = waistVal.toFixed(1);
+
+      const recent7 = logs.slice(-7);
+      let sumW = 0;
+      for (let i = 0; i < recent7.length; i++) {
+        sumW += Number(recent7[i].weight) || 68.4;
+      }
+      const avg7 = sumW / recent7.length;
+      document.getElementById('stat-avg7').textContent = avg7.toFixed(2) + ' kg';
+
+      const lbmBadge = document.getElementById('lbmAlertBadge');
+      if (latestLbm >= 52.8) {
+        lbmBadge.style.color = 'var(--sage)';
+        lbmBadge.style.background = 'rgba(82,183,136,0.15)';
+        lbmBadge.textContent = '💪 保肌完美 (' + latestLbm + 'kg)';
+      } else {
+        lbmBadge.style.color = '#FBBF24';
+        lbmBadge.style.background = 'rgba(245,158,11,0.15)';
+        lbmBadge.textContent = '⚠️ LBM略降 (' + latestLbm + 'kg)';
+      }
+
+      const listEl = document.getElementById('bodyLogList');
+      let listHtml = '';
+      for (let i = logs.length - 1; i >= 0; i--) {
+        const item = logs[i];
+        const iw = Number(item.weight) || 68.4;
+        const ibf = Number(item.bf) || 22.4;
+        const iwaist = Number(item.waist) || 77.0;
+        const lbm = (iw * (1 - ibf / 100)).toFixed(1);
+        listHtml += '<div class="swap-item mono">' +
+          '<span style="color:var(--text-muted);">' + item.date + '</span>' +
+          '<b>' + iw.toFixed(1) + 'kg</b>' +
+          '<span style="color:var(--accent-light);">' + ibf.toFixed(1) + '%</span>' +
+          '<span style="color:var(--sage);">LBM ' + lbm + '</span>' +
+          '<span>' + iwaist.toFixed(1) + 'cm</span>' +
+          '<button type="button" class="del-btn" onclick="deleteBodyLog(\'' + item.date + '\')">✕</button>' +
+        '</div>';
+      }
+      listEl.innerHTML = listHtml;
     }
 
-    // Initialize App on Load
-    window.onload = function () {
-      loadState();
-      renderAll();
-    };
+    updateSwapPreview();
+    renderAll();
   </script>
 </body>
 </html>
